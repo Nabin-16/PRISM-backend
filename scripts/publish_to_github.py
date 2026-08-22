@@ -65,7 +65,38 @@ def format_percent(value: Any) -> str:
         return str(value)
 
 
+def _load_env() -> None:
+    # Try python-dotenv first
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
+    # Fallback / flexible parser for .env located in repo root (supporting $env:, export, etc.)
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if env_file.is_file():
+        try:
+            with open(env_file, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    if line.startswith("export "):
+                        line = line[7:].strip()
+                    if line.startswith("$env:"):
+                        line = line[5:].strip()
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k and k not in os.environ:
+                        os.environ[k] = v
+        except Exception:
+            pass
+
+
 def get_client() -> tuple[str, dict[str, str]]:
+    _load_env()
     url = (
         os.environ.get("PRISM_SUPABASE_URL")
         or os.environ.get("SUPABASE_URL", "")
