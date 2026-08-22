@@ -25,11 +25,11 @@ Desktop App / Website  (fetch verified results directly from GitHub)
 
 ---
 
-## Tools & Scripts
+## Maintainer Tools
 
 ### 1. `scripts/approve_runs.py` — Review Queue
 
-List, approve, or reject submissions in the Supabase staging queue:
+Inspect, approve, or reject user submissions in the Supabase staging queue:
 
 ```powershell
 # Set credentials:
@@ -45,13 +45,13 @@ python scripts/approve_runs.py approve <benchmark_run_id> --by "YourName"
 # Approve all pending runs
 python scripts/approve_runs.py approve-all --by "YourName"
 
-# Reject and remove a submission
+# Reject and remove a bad submission
 python scripts/approve_runs.py reject <benchmark_run_id>
 ```
 
 ### 2. `scripts/publish_to_github.py` — Publish Approved Results
 
-Fetches all `approved = true` runs from Supabase and pushes the clean result files to the public GitHub repository:
+Fetches all `approved = true` runs from Supabase and pushes the clean result files directly to the public GitHub repository:
 
 ```powershell
 $env:PRISM_SUPABASE_URL="https://memineeqsblrgyyjxtpa.supabase.co"
@@ -59,14 +59,6 @@ $env:PRISM_SUPABASE_SECRET_KEY="<your-secret-key>"
 $env:GITHUB_PAT="<github-personal-access-token-with-repo-write-scope>"
 
 python scripts/publish_to_github.py
-```
-
-### 3. `scripts/push_bundled_results_to_supabase.py` — Reference Data Seeder
-
-Seeds the project's own validated reference results into Supabase with the secret key:
-
-```powershell
-python scripts/push_bundled_results_to_supabase.py
 ```
 
 ---
