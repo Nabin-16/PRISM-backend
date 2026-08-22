@@ -1,86 +1,89 @@
 # PRISM Backend
 
-This repository contains the **maintainer-side tools** for the PRISM benchmark pipeline.
+Private maintainer tools and publishing service for the **PRISM** benchmark pipeline.
+
+- Desktop App: [`Nabin-16/PRISM-Reliability-test-`](https://github.com/Nabin-16/PRISM-Reliability-test-)
+- Public Data Archive: [`Nabin-16/Reliability-test-result-model-versions`](https://github.com/Nabin-16/Reliability-test-result-model-versions)
 
 ---
 
-## What This Repository Does
-
-PRISM runs on a three-layer architecture:
+## Architecture
 
 ```text
 PRISM Desktop App  (runs benchmark locally, submits result)
         │
         ▼
-    Supabase        (private staging queue — all submissions land here as approved=false)
+    Supabase        (private review queue — submissions land as approved=false)
         │
-        │  ◄── You review and approve here, using scripts in THIS repo
+        │  ◄── Review/Approve/Publish using tools in THIS repository
         ▼
 Public GitHub Repo  (Nabin-16/Reliability-test-result-model-versions)
         │
         ▼
-Desktop App / Website  (fetch verified results from GitHub)
+Desktop App / Website  (fetch verified results directly from GitHub)
 ```
-
-When a user runs a benchmark and submits it:
-- Their result goes to **Supabase** with `approved = false`.
-- Nothing becomes public automatically.
-- A maintainer (you) runs the scripts here to inspect and approve or reject submissions.
-- Once approved, the GitHub Actions workflow in the public results repo fetches and publishes only the `approved = true` rows.
 
 ---
 
-## Scripts
+## Tools & Scripts
 
-### `scripts/approve_runs.py`
+### 1. `scripts/approve_runs.py` — Review Queue
 
-
+List, approve, or reject submissions in the Supabase staging queue:
 
 ```powershell
-# Set credentials first (never commit these):
+# Set credentials:
 $env:PRISM_SUPABASE_URL="https://memineeqsblrgyyjxtpa.supabase.co"
 $env:PRISM_SUPABASE_SECRET_KEY="<your-secret-key>"
 
-# See what is waiting for review:
+# View pending submissions
 python scripts/approve_runs.py list
 
-# Approve a specific run by its ID:
+# Approve a run by ID
 python scripts/approve_runs.py approve <benchmark_run_id> --by "YourName"
 
-# Approve everything currently pending (use carefully):
+# Approve all pending runs
 python scripts/approve_runs.py approve-all --by "YourName"
 
-# Reject and permanently remove a bad submission:
+# Reject and remove a submission
 python scripts/approve_runs.py reject <benchmark_run_id>
 ```
 
-After running `approve`, trigger the sync workflow in the public results repository to publish:
-- Go to **[Reliability-test-result-model-versions → Actions → Sync Verified PRISM Results](https://github.com/Nabin-16/Reliability-test-result-model-versions/actions/workflows/sync-results.yml)**
-- Click **Run workflow**.
+### 2. `scripts/publish_to_github.py` — Publish Approved Results
 
-### `scripts/push_bundled_results_to_supabase.py`
-
-For pushing the project's own validated reference results (the "bundled seed" that ships with the desktop app) into Supabase with the secret key. Regular users never run this.
+Fetches all `approved = true` runs from Supabase and pushes the clean result files to the public GitHub repository:
 
 ```powershell
 $env:PRISM_SUPABASE_URL="https://memineeqsblrgyyjxtpa.supabase.co"
 $env:PRISM_SUPABASE_SECRET_KEY="<your-secret-key>"
+$env:GITHUB_PAT="<github-personal-access-token-with-repo-write-scope>"
 
+python scripts/publish_to_github.py
+```
+
+### 3. `scripts/push_bundled_results_to_supabase.py` — Reference Data Seeder
+
+Seeds the project's own validated reference results into Supabase with the secret key:
+
+```powershell
 python scripts/push_bundled_results_to_supabase.py
 ```
 
 ---
 
-## Setup
+## Automated Publishing
 
-1. **Clone this repository.**
+This repository includes a GitHub Actions workflow (`.github/workflows/publish-results.yml`) that runs on a weekly schedule or manual dispatch.
 
-2. **Install the only dependency:**
-   ```bash
-   pip install requests
-   ```
-
-3. **Set credentials as environment variables**
-
+Configure the following GitHub Secrets in **PRISM-backend → Settings → Secrets & Variables → Actions**:
+- `PRISM_SUPABASE_URL`
+- `PRISM_SUPABASE_SECRET_KEY`
+- `PUBLIC_REPO_PUBLISH_PAT` (GitHub PAT with write access to `Nabin-16/Reliability-test-result-model-versions`)
 
 ---
+
+## Setup & Dependencies
+
+```bash
+pip install requests
+```

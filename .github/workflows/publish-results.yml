@@ -1,0 +1,29 @@
+name: Publish Results to Public Repo
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0" # Weekly on Sunday midnight UTC
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout backend repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Publish approved results to public repository
+        env:
+          PRISM_SUPABASE_URL: ${{ secrets.PRISM_SUPABASE_URL }}
+          PRISM_SUPABASE_SECRET_KEY: ${{ secrets.PRISM_SUPABASE_SECRET_KEY }}
+          GITHUB_PAT: ${{ secrets.PUBLIC_REPO_PUBLISH_PAT }}
+        run: python scripts/publish_to_github.py
