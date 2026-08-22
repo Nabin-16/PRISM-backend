@@ -2,8 +2,6 @@
 
 This repository contains the **maintainer-side tools** for the PRISM benchmark pipeline.
 
-It is **not** the desktop application (that is [`PRISM-Reliability-test-`](https://github.com/Nabin-16/PRISM-Reliability-test-)), and it is **not** the public results archive (that is [`Reliability-test-result-model-versions`](https://github.com/Nabin-16/Reliability-test-result-model-versions)).
-
 ---
 
 ## What This Repository Does
@@ -36,7 +34,7 @@ When a user runs a benchmark and submits it:
 
 ### `scripts/approve_runs.py`
 
-The human review gate. List, approve, or reject benchmark submissions from the Supabase staging queue.
+
 
 ```powershell
 # Set credentials first (never commit these):
@@ -82,16 +80,7 @@ python scripts/push_bundled_results_to_supabase.py
    pip install requests
    ```
 
-3. **Set credentials as environment variables** — never commit them. The `.gitignore` blocks `.env` files.
+3. **Set credentials as environment variables**
 
-4. **Supabase Table Grants** — if you get a `42501 permission denied` error, run [`supabase/fix_grants.sql`](https://github.com/Nabin-16/PRISM-Reliability-test-/blob/prism-app/supabase/fix_grants.sql) in the Supabase SQL Editor once.
 
 ---
-
-## Security
-
-- The **secret key** (`PRISM_SUPABASE_SECRET_KEY`) must never be committed, printed, or put into any tracked file.
-- The desktop app uses only the **publishable key** — it can insert submissions but cannot read arbitrary rows or delete anything.
-- The public results repository uses the secret key only inside GitHub Actions secrets (`SUPABASE_SECRET_KEY`).
-
-If a secret key is accidentally committed anywhere, rotate it immediately in **Supabase → Project Settings → API → Reset secret key**. Deleting the commit alone is not sufficient.
